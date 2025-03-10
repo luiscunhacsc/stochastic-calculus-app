@@ -17,6 +17,24 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# Add MathJax
+st.markdown("""
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+<script>
+MathJax.Hub.Config({
+  tex2jax: {
+    inlineMath: [['$','$'], ['\\(','\\)']],
+    displayMath: [['$$','$$'], ['\\[','\\]']],
+    processEscapes: true,
+    processEnvironments: true
+  },
+  CommonHTML: { linebreaks: { automatic: true } },
+  "HTML-CSS": { linebreaks: { automatic: true } },
+  SVG: { linebreaks: { automatic: true } }
+});
+</script>
+""", unsafe_allow_html=True)
+
 # Custom CSS to make the app look better
 st.markdown("""
 <style>
@@ -29,9 +47,6 @@ st.markdown("""
     }
     h1, h2, h3 {
         color: #0e1117;
-    }
-    .katex {
-        font-size: 1.1em;
     }
     .disclaimer {
         font-size: 0.8em;
@@ -50,6 +65,7 @@ st.markdown("""
         padding: 15px;
         margin: 10px 0;
         border-left: 4px solid #4e8cff;
+        overflow-x: auto;
     }
     .note-box {
         background-color: #e7f0fd;
@@ -66,9 +82,22 @@ st.markdown("""
         padding-top: 20px;
         padding-bottom: 10px;
     }
+    
+    /* Better styling for equations */
+    .math-box {
+        overflow-x: auto;
+        padding: 8px 0;
+    }
+    
+    /* Force MathJax to behave */
+    .mjx-chtml {
+        display: inline-block !important;
+        white-space: normal !important;
+    }
+    
     @media (max-width: 768px) {
-        .katex {
-            font-size: 1em;
+        .formula-box {
+            padding: 10px;
         }
     }
 </style>
@@ -151,8 +180,24 @@ def get_cc_image():
     img_str = base64.b64encode(buffer.getvalue()).decode()
     return f'data:image/png;base64,{img_str}'
 
-# App title and author info
+# App title
 st.title("Elementary Stochastic Calculus Explorer")
+
+# Sidebar navigation - before author info
+st.sidebar.title("Navigation")
+section = st.sidebar.radio(
+    "Go to section:",
+    ["Introduction", 
+     "Markov & Martingale Properties",
+     "Brownian Motion", 
+     "Stochastic Integration",
+     "Stochastic Differential Equations",
+     "Itô's Lemma",
+     "Common Stochastic Processes",
+     "Interactive Simulation"]
+)
+
+# Author info after navigation
 st.write("By Luís Simões da Cunha")
 
 # Add disclaimer and license information
@@ -177,20 +222,6 @@ st.sidebar.markdown("""
 This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/">Creative Commons Attribution-NonCommercial 4.0 International License</a>.
 </div>
 """, unsafe_allow_html=True)
-
-# Sidebar navigation
-st.sidebar.title("Navigation")
-section = st.sidebar.radio(
-    "Go to section:",
-    ["Introduction", 
-     "Markov & Martingale Properties",
-     "Brownian Motion", 
-     "Stochastic Integration",
-     "Stochastic Differential Equations",
-     "Itô's Lemma",
-     "Common Stochastic Processes",
-     "Interactive Simulation"]
-)
 
 # Introduction
 if section == "Introduction":
@@ -262,8 +293,9 @@ elif section == "Markov & Martingale Properties":
     
     st.markdown("""
     <div class="formula-box">
-    For a stochastic process $S_i$, the Markov property states that:<br>
-    $E[S_i|S_1, S_2, ..., S_{i-1}] = E[S_i|S_{i-1}]$
+    For a stochastic process $S_i$, the Markov property states that:
+    
+    $$E[S_i|S_1, S_2, ..., S_{i-1}] = E[S_i|S_{i-1}]$$
     </div>
     """, unsafe_allow_html=True)
     
@@ -281,8 +313,9 @@ elif section == "Markov & Martingale Properties":
     
     st.markdown("""
     <div class="formula-box">
-    For a stochastic process $S_i$, the martingale property states that:<br>
-    $E[S_i|S_j, j < i] = S_j$
+    For a stochastic process $S_i$, the martingale property states that:
+    
+    $$E[S_i|S_j, j < i] = S_j$$
     </div>
     """, unsafe_allow_html=True)
     
@@ -409,7 +442,7 @@ elif section == "Brownian Motion":
     
     st.markdown("""
     <div class="formula-box">
-    $\sum_{j=1}^{n} (W(t_j) - W(t_{j-1}))^2 \to t$ as $n \to \infty$
+    $$\sum_{j=1}^{n} (W(t_j) - W(t_{j-1}))^2 \to t \text{ as } n \to \infty$$
     </div>
     """, unsafe_allow_html=True)
     
@@ -429,8 +462,9 @@ elif section == "Stochastic Integration":
     
     st.markdown("""
     <div class="formula-box">
-    The Itô integral is defined as:<br>
-    $\int_0^t f(\tau) dW(\tau) = \lim_{n \to \infty} \sum_{j=1}^{n} f(t_{j-1})(W(t_j) - W(t_{j-1}))$
+    The Itô integral is defined as:
+    
+    $$\int_0^t f(\tau) \, dW(\tau) = \lim_{n \to \infty} \sum_{j=1}^{n} f(t_{j-1})(W(t_j) - W(t_{j-1}))$$
     </div>
     """, unsafe_allow_html=True)
     
@@ -471,7 +505,7 @@ elif section == "Stochastic Integration":
     st.plotly_chart(fig, use_container_width=True)
     
     st.markdown("""
-    The stochastic integral $\int_0^t f(\tau) dW(\tau)$ can be thought of as accumulating the product of the 
+    The stochastic integral $\int_0^t f(\tau) \, dW(\tau)$ can be thought of as accumulating the product of the 
     function value and the increments of Brownian motion. The crucial point is that we evaluate the function at 
     the beginning of each time interval, before we know the Brownian increment.
     """)
@@ -480,7 +514,7 @@ elif section == "Stochastic Integration":
     <div class="note-box">
     <b>Financial interpretation:</b><br>
     If $W(t)$ represents the randomness in a stock price, and $f(t)$ represents our investment strategy,
-    then $\int_0^t f(\tau) dW(\tau)$ represents our cumulative gains or losses from this strategy.
+    then $\int_0^t f(\tau) \, dW(\tau)$ represents our cumulative gains or losses from this strategy.
     The non-anticipatory property ensures that our strategy doesn't peek into the future.
     </div>
     """, unsafe_allow_html=True)
@@ -496,8 +530,9 @@ elif section == "Stochastic Differential Equations":
     
     st.markdown("""
     <div class="formula-box">
-    A general form of an SDE is:<br>
-    $dS = a(S,t)dt + b(S,t)dW$
+    A general form of an SDE is:
+    
+    $$dS = a(S,t) \, dt + b(S,t) \, dW$$
     </div>
     """, unsafe_allow_html=True)
     
@@ -516,9 +551,11 @@ elif section == "Stochastic Differential Equations":
     
     st.markdown("""
     SDEs are often written in differential form, but their precise meaning comes from the equivalent integral form:
+    """)
     
+    st.markdown("""
     <div class="formula-box">
-    $S(t) = S(0) + \int_0^t a(S(\tau),\tau)d\tau + \int_0^t b(S(\tau),\tau)dW(\tau)$
+    $$S(t) = S(0) + \int_0^t a(S(\tau),\tau) \, d\tau + \int_0^t b(S(\tau),\tau) \, dW(\tau)$$
     </div>
     """, unsafe_allow_html=True)
     
@@ -546,8 +583,9 @@ elif section == "Stochastic Differential Equations":
     if sde_type == "Geometric Brownian Motion":
         st.markdown("""
         <div class="formula-box">
-        Geometric Brownian Motion (GBM):<br>
-        $dS = \mu S dt + \sigma S dW$
+        Geometric Brownian Motion (GBM):
+        
+        $$dS = \mu S \, dt + \sigma S \, dW$$
         </div>
         """, unsafe_allow_html=True)
         
@@ -589,8 +627,9 @@ elif section == "Stochastic Differential Equations":
     elif sde_type == "Mean-Reverting (Vasicek)":
         st.markdown("""
         <div class="formula-box">
-        Vasicek Model (Mean-Reverting):<br>
-        $dS = (\nu - \mu S) dt + \sigma dW$
+        Vasicek Model (Mean-Reverting):
+        
+        $$dS = (\nu - \mu S) \, dt + \sigma \, dW$$
         </div>
         """, unsafe_allow_html=True)
         
@@ -637,8 +676,9 @@ elif section == "Stochastic Differential Equations":
     elif sde_type == "Cox-Ingersoll-Ross (CIR)":
         st.markdown("""
         <div class="formula-box">
-        Cox-Ingersoll-Ross (CIR) Model:<br>
-        $dS = (\nu - \mu S) dt + \sigma \sqrt{S} dW$
+        Cox-Ingersoll-Ross (CIR) Model:
+        
+        $$dS = (\nu - \mu S) \, dt + \sigma \sqrt{S} \, dW$$
         </div>
         """, unsafe_allow_html=True)
         
@@ -682,6 +722,434 @@ elif section == "Stochastic Differential Equations":
         - Combines mean reversion with state-dependent volatility
         """)
 
+# Common Stochastic Processes
+elif section == "Common Stochastic Processes":
+    st.header("Common Stochastic Processes in Finance")
+    
+    st.markdown("""
+    Financial markets are modeled using various stochastic processes, each with unique properties
+    that make them suitable for different assets or market conditions. Here are the most commonly used ones:
+    """)
+    
+    # Process selection
+    process = st.selectbox(
+        "Select a stochastic process to explore:",
+        ["Brownian Motion with Drift", "Geometric Brownian Motion", "Mean-Reverting (Vasicek)", "Cox-Ingersoll-Ross (CIR)"]
+    )
+    
+    if process == "Brownian Motion with Drift":
+        st.subheader("Brownian Motion with Drift")
+        
+        st.markdown("""
+        <div class="formula-box">
+        Brownian Motion with Drift:
+        
+        $dS = \mu \, dt + \sigma \, dW$
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("""
+        This is a simple extension of standard Brownian motion with an added drift term.
+        The process can go negative, making it unsuitable for quantities like stock prices or interest rates,
+        but it can be useful for modeling quantities that can take any value.
+        """)
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            mu = st.slider("Drift (μ) for BM", -0.5, 0.5, 0.1, 0.05)
+        with col2:
+            sigma = st.slider("Volatility (σ) for BM", 0.1, 1.0, 0.3, 0.05)
+            
+        # Generate and plot
+        t, W = generate_brownian_motion(1.0, 1000, seed=42)
+        S = mu * t + sigma * W
+        
+        fig = px.line(x=t, y=S)
+        fig.update_layout(
+            title="Brownian Motion with Drift",
+            xaxis_title="Time",
+            yaxis_title="Value",
+            template="plotly_white",
+            height=400
+        )
+        st.plotly_chart(fig, use_container_width=True)
+        
+        st.markdown("""
+        **Key properties:**
+        - Can be both positive and negative
+        - Has a linear trend determined by the drift parameter
+        - Variance increases linearly with time
+        - The solution is: $S(t) = S(0) + \mu t + \sigma W(t)$
+        """)
+        
+    elif process == "Geometric Brownian Motion":
+        st.subheader("Geometric Brownian Motion (GBM)")
+        
+        st.markdown("""
+        <div class="formula-box">
+        Geometric Brownian Motion (GBM):
+        
+        $dS = \mu S \, dt + \sigma S \, dW$
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("""
+        GBM is the most widely used model for stock prices and other assets. Since the drift and volatility
+        scale with the process value, it ensures that the process remains positive. It's the basis for the
+        Black-Scholes option pricing model.
+        """)
+        
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            S0 = st.slider("Initial value (S₀) for GBM", 10.0, 200.0, 100.0, 10.0)
+        with col2:
+            mu = st.slider("Drift (μ) for GBM", -0.5, 0.5, 0.05, 0.05)
+        with col3:
+            sigma = st.slider("Volatility (σ) for GBM", 0.05, 0.5, 0.2, 0.05)
+            
+        # Generate and plot
+        t, S = generate_gbm(S0, mu, sigma, 1.0, 1000, seed=42)
+        
+        fig = px.line(x=t, y=S)
+        fig.update_layout(
+            title="Geometric Brownian Motion",
+            xaxis_title="Time",
+            yaxis_title="Value",
+            template="plotly_white",
+            height=400
+        )
+        st.plotly_chart(fig, use_container_width=True)
+        
+        # Also plot the log of the process
+        fig = px.line(x=t, y=np.log(S))
+        fig.update_layout(
+            title="Log of Geometric Brownian Motion",
+            xaxis_title="Time",
+            yaxis_title="Log Value",
+            template="plotly_white",
+            height=400
+        )
+        st.plotly_chart(fig, use_container_width=True)
+        
+        st.markdown("""
+        **Key properties:**
+        - Always positive (important for asset prices)
+        - Percentage changes are normally distributed
+        - Has log-normal distribution at any fixed time
+        - Exhibits exponential growth in expectation
+        - The solution is: $S(t) = S(0)e^{(\mu - \frac{\sigma^2}{2})t + \sigma W(t)}$
+        """)
+        
+    elif process == "Mean-Reverting (Vasicek)":
+        st.subheader("Mean-Reverting Process (Vasicek Model)")
+        
+        st.markdown("""
+        <div class="formula-box">
+        Vasicek Model (Mean-Reverting):
+        
+        $dS = (\nu - \mu S) \, dt + \sigma \, dW$
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("""
+        The Vasicek model is a mean-reverting stochastic process often used for interest rates.
+        If the current value is below the long-term mean (ν/μ), the drift becomes positive, pushing the process up.
+        If it's above, the drift becomes negative, pushing it down.
+        """)
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            S0 = st.slider("Initial value (S₀) for Vasicek", 0.01, 2.0, 1.0, 0.01)
+            nu = st.slider("Long-term mean factor (ν)", 0.1, 2.0, 1.0, 0.1)
+        with col2:
+            mu = st.slider("Reversion speed (μ)", 0.1, 5.0, 1.0, 0.1)
+            sigma = st.slider("Volatility (σ) for Vasicek", 0.05, 0.5, 0.2, 0.05)
+            
+        # Generate and plot
+        t, S = generate_mean_reverting(S0, nu, mu, sigma, 1.0, 1000, seed=42)
+        
+        fig = px.line(x=t, y=S)
+        fig.add_hline(y=nu/mu, line_dash="dash", line_color="red", annotation_text="Long-term mean")
+        fig.update_layout(
+            title="Vasicek Mean-Reverting Process",
+            xaxis_title="Time",
+            yaxis_title="Value",
+            template="plotly_white",
+            height=400
+        )
+        st.plotly_chart(fig, use_container_width=True)
+        
+        st.markdown("""
+        **Key properties:**
+        - Reverts to a long-term mean (ν/μ)
+        - Can go negative (a limitation for interest rates)
+        - The speed of mean reversion is proportional to the distance from the mean
+        - Used for interest rates and other mean-reverting variables
+        """)
+        
+    elif process == "Cox-Ingersoll-Ross (CIR)":
+        st.subheader("Cox-Ingersoll-Ross (CIR) Process")
+        
+        st.markdown("""
+        <div class="formula-box">
+        Cox-Ingersoll-Ross (CIR) Model:
+        
+        $dS = (\nu - \mu S) \, dt + \sigma \sqrt{S} \, dW$
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("""
+        The CIR model improves on the Vasicek model by ensuring that the process remains positive.
+        As the process approaches zero, the volatility also approaches zero, preventing it from becoming negative.
+        This makes it more suitable for modeling interest rates and other quantities that should stay positive.
+        """)
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            S0 = st.slider("Initial value (S₀) for CIR", 0.01, 2.0, 1.0, 0.01)
+            nu = st.slider("Long-term mean factor (ν) for CIR", 0.1, 2.0, 1.0, 0.1)
+        with col2:
+            mu = st.slider("Reversion speed (μ) for CIR", 0.1, 5.0, 1.0, 0.1)
+            sigma = st.slider("Volatility (σ) for CIR", 0.05, 0.5, 0.2, 0.05)
+            
+        # Generate and plot
+        t, S = generate_cir(S0, nu, mu, sigma, 1.0, 1000, seed=42)
+        
+        fig = px.line(x=t, y=S)
+        fig.add_hline(y=nu/mu, line_dash="dash", line_color="red", annotation_text="Long-term mean")
+        fig.update_layout(
+            title="Cox-Ingersoll-Ross Process",
+            xaxis_title="Time",
+            yaxis_title="Value",
+            template="plotly_white",
+            height=400
+        )
+        st.plotly_chart(fig, use_container_width=True)
+        
+        st.markdown("""
+        **Key properties:**
+        - Always non-negative (volatility decreases as the process approaches zero)
+        - Mean-reverting to a long-term mean (ν/μ)
+        - If 2νσ² ≥ 1, the process never reaches zero
+        - Widely used for interest rate modeling
+        """)
+        
+    # Compare processes side by side
+    st.subheader("Comparing Different Stochastic Processes")
+    
+    if st.button("Generate Comparison"):
+        # Generate processes with the same random seed
+        seed = 42
+        t_common = np.linspace(0, 1, 1001)
+        
+        # Standard Brownian motion with drift
+        t_bm, W = generate_brownian_motion(1.0, 1000, seed)
+        S_bm = 1.0 + 0.1 * t_bm + 0.2 * W
+        
+        # GBM
+        t_gbm, S_gbm = generate_gbm(1.0, 0.1, 0.2, 1.0, 1000, seed)
+        
+        # Vasicek
+        t_vas, S_vas = generate_mean_reverting(1.0, 0.1, 0.5, 0.2, 1.0, 1000, seed)
+        
+        # CIR
+        t_cir, S_cir = generate_cir(1.0, 0.1, 0.5, 0.2, 1.0, 1000, seed)
+        
+        # Create a figure with subplots
+        fig = make_subplots(rows=2, cols=2, 
+                          subplot_titles=("Brownian Motion with Drift", "Geometric Brownian Motion", 
+                                          "Vasicek Process", "CIR Process"))
+        
+        fig.add_trace(go.Scatter(x=t_bm, y=S_bm, mode='lines'), row=1, col=1)
+        fig.add_trace(go.Scatter(x=t_gbm, y=S_gbm, mode='lines'), row=1, col=2)
+        fig.add_trace(go.Scatter(x=t_vas, y=S_vas, mode='lines'), row=2, col=1)
+        fig.add_trace(go.Scatter(x=t_cir, y=S_cir, mode='lines'), row=2, col=2)
+        
+        # Add mean lines for mean-reverting processes
+        fig.add_hline(y=0.1/0.5, line_dash="dash", line_color="red", row=2, col=1)
+        fig.add_hline(y=0.1/0.5, line_dash="dash", line_color="red", row=2, col=2)
+        
+        fig.update_layout(
+            height=800,
+            template="plotly_white",
+            showlegend=False
+        )
+        
+        st.plotly_chart(fig, use_container_width=True)
+        
+        st.markdown("""
+        **Observations:**
+        
+        - Brownian motion can become negative
+        - GBM remains positive and tends to grow exponentially
+        - Vasicek and CIR both revert to their long-term mean
+        - CIR can't go negative, unlike Vasicek
+        - The choice of process should match the properties of the financial quantity being modeled
+        """)
+
+# Interactive Simulation
+elif section == "Interactive Simulation":
+    st.header("Interactive Stochastic Process Simulator")
+    
+    st.markdown("""
+    This simulator allows you to generate and visualize various stochastic processes with your choice of parameters.
+    You can observe how changing parameters affects the behavior of the processes.
+    """)
+    
+    # Process selection
+    process_type = st.selectbox(
+        "Select process type",
+        ["Geometric Brownian Motion (GBM)", "Mean-Reverting (Vasicek)", "Cox-Ingersoll-Ross (CIR)"]
+    )
+    
+    # Common parameters
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        S0 = st.number_input("Initial value (S₀)", value=100.0, min_value=0.1, step=1.0)
+        T = st.number_input("Time horizon", value=1.0, min_value=0.1, step=0.1)
+        
+    with col2:
+        N = st.number_input("Number of steps", value=1000, min_value=100, step=100)
+        num_paths = st.number_input("Number of paths", value=5, min_value=1, max_value=20)
+        
+    with col3:
+        if process_type == "Geometric Brownian Motion (GBM)":
+            mu = st.number_input("Drift (μ)", value=0.05, min_value=-0.5, max_value=0.5, step=0.01)
+            sigma = st.number_input("Volatility (σ)", value=0.2, min_value=0.01, max_value=1.0, step=0.01)
+        else:  # Mean-reverting processes
+            nu = st.number_input("Long-term mean factor (ν)", value=0.05, min_value=0.01, max_value=0.2, step=0.01)
+            mu = st.number_input("Reversion speed (μ)", value=0.5, min_value=0.1, max_value=5.0, step=0.1)
+            sigma = st.number_input("Volatility (σ)", value=0.2, min_value=0.01, max_value=1.0, step=0.01)
+            
+    # Seed for reproducibility
+    seed = st.number_input("Random seed (optional)", value=42, min_value=1, step=1)
+    
+    # Button to generate simulation
+    if st.button("Generate Simulation"):
+        fig = go.Figure()
+        
+        for i in range(num_paths):
+            if process_type == "Geometric Brownian Motion (GBM)":
+                t, S = generate_gbm(S0, mu, sigma, T, N, seed + i)
+            elif process_type == "Mean-Reverting (Vasicek)":
+                t, S = generate_mean_reverting(S0, nu, mu, sigma, T, N, seed + i)
+            elif process_type == "Cox-Ingersoll-Ross (CIR)":
+                t, S = generate_cir(S0, nu, mu, sigma, T, N, seed + i)
+            
+            fig.add_trace(go.Scatter(x=t, y=S, mode='lines', name=f'Path {i+1}'))
+        
+        # Add long-term mean for mean-reverting processes
+        if process_type != "Geometric Brownian Motion (GBM)":
+            fig.add_hline(y=nu/mu, line_dash="dash", line_color="red", 
+                          annotation=dict(text="Long-term mean"))
+            
+        fig.update_layout(
+            title=f'{process_type} Simulation',
+            xaxis_title='Time',
+            yaxis_title='Value',
+            height=600,
+            template='plotly_white'
+        )
+        
+        st.plotly_chart(fig, use_container_width=True)
+        
+        # Statistics
+        if num_paths > 1:
+            all_paths = np.zeros((num_paths, N+1))
+            for i in range(num_paths):
+                if process_type == "Geometric Brownian Motion (GBM)":
+                    _, path = generate_gbm(S0, mu, sigma, T, N, seed + i)
+                elif process_type == "Mean-Reverting (Vasicek)":
+                    _, path = generate_mean_reverting(S0, nu, mu, sigma, T, N, seed + i)
+                elif process_type == "Cox-Ingersoll-Ross (CIR)":
+                    _, path = generate_cir(S0, nu, mu, sigma, T, N, seed + i)
+                all_paths[i] = path
+                
+            # Calculate statistics across paths
+            mean_path = np.mean(all_paths, axis=0)
+            std_path = np.std(all_paths, axis=0)
+            min_path = np.min(all_paths, axis=0)
+            max_path = np.max(all_paths, axis=0)
+            
+            # Plot statistics
+            fig_stats = go.Figure()
+            fig_stats.add_trace(go.Scatter(x=t, y=mean_path, mode='lines', name='Mean',
+                                         line=dict(color='blue', width=2)))
+            
+            # Add confidence bands (mean ± std)
+            fig_stats.add_trace(go.Scatter(
+                x=np.concatenate([t, t[::-1]]),
+                y=np.concatenate([mean_path + std_path, (mean_path - std_path)[::-1]]),
+                fill='toself',
+                fillcolor='rgba(0,100,255,0.2)',
+                line=dict(color='rgba(255,255,255,0)'),
+                name='Mean ± 1 Std Dev'
+            ))
+            
+            fig_stats.add_trace(go.Scatter(x=t, y=min_path, mode='lines', name='Min',
+                                         line=dict(color='red', width=1, dash='dash')))
+            fig_stats.add_trace(go.Scatter(x=t, y=max_path, mode='lines', name='Max',
+                                         line=dict(color='green', width=1, dash='dash')))
+            
+            fig_stats.update_layout(
+                title='Statistics Across Paths',
+                xaxis_title='Time',
+                yaxis_title='Value',
+                height=500,
+                template='plotly_white'
+            )
+            
+            st.plotly_chart(fig_stats, use_container_width=True)
+            
+            # Final value distribution
+            final_values = all_paths[:, -1]
+            fig_hist = px.histogram(final_values, nbins=20, 
+                                   labels={'value': 'Final Value', 'count': 'Frequency'},
+                                   title='Distribution of Final Values')
+            fig_hist.update_layout(template='plotly_white')
+            st.plotly_chart(fig_hist, use_container_width=True)
+            
+            # Summary statistics
+            st.subheader("Summary Statistics of Final Values")
+            stats_df = pd.DataFrame({
+                'Statistic': ['Mean', 'Median', 'Standard Deviation', 'Minimum', 'Maximum'],
+                'Value': [
+                    f"{np.mean(final_values):.4f}",
+                    f"{np.median(final_values):.4f}",
+                    f"{np.std(final_values):.4f}",
+                    f"{np.min(final_values):.4f}",
+                    f"{np.max(final_values):.4f}"
+                ]
+            })
+            st.table(stats_df)
+    
+    st.markdown("""
+    **Understanding the simulation:**
+    
+    - Each path represents a possible future trajectory of the process
+    - The variability between paths shows the uncertainty in future outcomes
+    - Statistics across paths give insights into the expected behavior and risk
+    - The choice of parameters significantly impacts the process behavior
+    """)
+    
+    st.markdown("""
+    <div class="note-box">
+    <b>Financial Applications:</b><br>
+    These simulations are used in various financial applications:
+    <ul>
+        <li>Monte Carlo methods for option pricing</li>
+        <li>Risk management and Value-at-Risk (VaR) calculations</li>
+        <li>Asset allocation and portfolio optimization</li>
+        <li>Stress testing financial models</li>
+    </ul>
+    </div>
+    """, unsafe_allow_html=True)
+
 # Itô's Lemma
 elif section == "Itô's Lemma":
     st.header("Itô's Lemma")
@@ -693,8 +1161,9 @@ elif section == "Itô's Lemma":
     
     st.markdown("""
     <div class="formula-box">
-    For a function $F(S,t)$ where $S$ follows the SDE $dS = a(S,t)dt + b(S,t)dW$, Itô's lemma states:<br>
-    $dF = \left(\frac{\partial F}{\partial t} + a\frac{\partial F}{\partial S} + \frac{1}{2}b^2\frac{\partial^2 F}{\partial S^2}\right)dt + b\frac{\partial F}{\partial S}dW$
+    For a function $F(S,t)$ where $S$ follows the SDE $dS = a(S,t)dt + b(S,t)dW$, Itô's lemma states:
+    
+    $dF = \left(\frac{\partial F}{\partial t} + a\frac{\partial F}{\partial S} + \frac{1}{2}b^2\frac{\partial^2 F}{\partial S^2}\right) dt + b\frac{\partial F}{\partial S} \, dW$
     </div>
     """, unsafe_allow_html=True)
     
@@ -729,28 +1198,48 @@ elif section == "Itô's Lemma":
     
     st.markdown("""
     Consider a stock price following geometric Brownian motion:
+    """)
     
+    st.markdown("""
     <div class="formula-box">
-    $dS = \mu S dt + \sigma S dW$
+    $dS = \mu S \, dt + \sigma S \, dW$
     </div>
-    
-    Let's apply Itô's lemma to find the SDE for $F(S) = \log(S)$.
-    
-    <div class="formula-box">
-    $\frac{\partial F}{\partial S} = \frac{1}{S}$<br>
-    $\frac{\partial^2 F}{\partial S^2} = -\frac{1}{S^2}$<br>
-    $\frac{\partial F}{\partial t} = 0$
-    </div>
-    
-    Applying Itô's lemma:
-    
-    <div class="formula-box">
-    $d(\log S) = \left(0 + \mu S \cdot \frac{1}{S} + \frac{1}{2}\sigma^2 S^2 \cdot (-\frac{1}{S^2})\right)dt + \sigma S \cdot \frac{1}{S}dW$<br>
-    $d(\log S) = \left(\mu - \frac{1}{2}\sigma^2\right)dt + \sigma dW$
-    </div>
-    
-    This shows that while $S$ follows a geometric Brownian motion, $\log(S)$ follows a Brownian motion with drift.
     """, unsafe_allow_html=True)
+    
+    st.markdown("""
+    Let's apply Itô's lemma to find the SDE for $F(S) = \log(S)$.
+    """)
+    
+    st.markdown("""
+    <div class="formula-box">
+    $
+    \begin{align}
+    \frac{\partial F}{\partial S} &= \frac{1}{S}\\
+    \frac{\partial^2 F}{\partial S^2} &= -\frac{1}{S^2}\\
+    \frac{\partial F}{\partial t} &= 0
+    \end{align}
+    $
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("""
+    Applying Itô's lemma:
+    """)
+    
+    st.markdown("""
+    <div class="formula-box">
+    $
+    \begin{align}
+    d(\log S) &= \left(0 + \mu S \cdot \frac{1}{S} + \frac{1}{2}\sigma^2 S^2 \cdot \left(-\frac{1}{S^2}\right)\right)dt + \sigma S \cdot \frac{1}{S}dW\\
+    &= \left(\mu - \frac{1}{2}\sigma^2\right)dt + \sigma dW
+    \end{align}
+    $
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("""
+    This shows that while $S$ follows a geometric Brownian motion, $\log(S)$ follows a Brownian motion with drift.
+    """)
     
     st.markdown("""
     <div class="note-box">
@@ -794,10 +1283,13 @@ elif section == "Itô's Lemma":
     st.markdown("""
     Itô's lemma extends to functions of multiple stochastic variables. For a function $F(S_1, S_2, ..., t)$ 
     of multiple stochastic processes, we need to account for their correlations.
+    """)
     
+    st.markdown("""
     <div class="formula-box">
-    If $dS_i = a_i dt + b_i dW_i$ and $dW_i dW_j = \rho_{ij} dt$, then:<br>
-    $dF = \frac{\partial F}{\partial t}dt + \sum_i \frac{\partial F}{\partial S_i}dS_i + \frac{1}{2}\sum_i\sum_j \rho_{ij}b_i b_j\frac{\partial^2 F}{\partial S_i \partial S_j}dt$
+    If $dS_i = a_i dt + b_i dW_i$ and $dW_i dW_j = \\rho_{ij} dt$, then:
+    
+    $dF = \\frac{\\partial F}{\\partial t}dt + \\sum_i \\frac{\\partial F}{\\partial S_i}dS_i + \\frac{1}{2}\\sum_i\\sum_j \\rho_{ij}b_i b_j\\frac{\\partial^2 F}{\\partial S_i \\partial S_j}dt$
     </div>
     """, unsafe_allow_html=True)
     
@@ -805,4 +1297,3 @@ elif section == "Itô's Lemma":
     This multi-dimensional version is crucial for pricing options on multiple assets (like basket options) or
     when modeling multiple correlated risk factors.
     """)
-    
