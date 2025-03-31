@@ -1,4 +1,9 @@
-import streamlit as st
+# =============================================================================
+# Complete Streamlit Application for Stochastic Calculus Exploration
+# =============================================================================
+
+# --- Module Imports ---------------------------------------------------------
+import streamlit as st  # Must import Streamlit before using its functions!
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -7,6 +12,7 @@ from PIL import Image
 from io import BytesIO
 import time
 
+# --- Page Configuration -----------------------------------------------------
 st.set_page_config(
     page_title="Stochastic Calculus Explorer",
     page_icon="📊",
@@ -14,7 +20,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS to make the app look better
+# --- Custom CSS Styling -----------------------------------------------------
 st.markdown("""
 <style>
     .main {
@@ -57,21 +63,51 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# ============================================================================
-# Helper functions for generating stochastic processes
-# ============================================================================
+# =============================================================================
+# Helper Functions: Generating Stochastic Processes
+# =============================================================================
 
 def generate_brownian_motion(T=1.0, N=1000, seed=None):
+    """
+    Generates a standard Brownian motion (Wiener process).
+
+    Parameters:
+    - T: Total time.
+    - N: Number of time steps.
+    - seed: Random seed for reproducibility.
+
+    Returns:
+    - t: Time vector.
+    - W: Brownian motion sample path.
+    """
     if seed is not None:
         np.random.seed(seed)
     dt = T / N
     dW = np.random.normal(0, np.sqrt(dt), N)
     W = np.cumsum(dW)
-    W = np.insert(W, 0, 0)  # Start at 0
+    W = np.insert(W, 0, 0)  # Start the process at 0
     t = np.linspace(0, T, N + 1)
     return t, W
 
 def generate_gbm(S0, mu, sigma, T=1.0, N=1000, seed=None):
+    """
+    Generates a Geometric Brownian Motion (GBM) using its closed-form solution.
+    
+    The closed-form expression is:
+      S(t) = S0 * exp((mu - sigma^2/2) * t + sigma * W(t))
+    
+    Parameters:
+    - S0: Initial stock price.
+    - mu: Drift term.
+    - sigma: Volatility.
+    - T: Time horizon.
+    - N: Number of steps.
+    - seed: Random seed.
+
+    Returns:
+    - t: Time vector.
+    - S: GBM sample path.
+    """
     t, W = generate_brownian_motion(T, N, seed)
     S = np.zeros(N + 1)
     S[0] = S0
@@ -80,6 +116,25 @@ def generate_gbm(S0, mu, sigma, T=1.0, N=1000, seed=None):
     return t, S
 
 def generate_mean_reverting(S0, nu, mu, sigma, T=1.0, N=1000, seed=None):
+    """
+    Generates a mean-reverting process using Euler–Maruyama discretization.
+    
+    The SDE is of the form:
+      dS = (nu - mu*S) dt + sigma dW
+    
+    Parameters:
+    - S0: Initial value.
+    - nu: Long-term mean parameter.
+    - mu: Speed of reversion.
+    - sigma: Volatility.
+    - T: Time horizon.
+    - N: Number of steps.
+    - seed: Random seed.
+    
+    Returns:
+    - t: Time vector.
+    - S: Sample path.
+    """
     t, W = generate_brownian_motion(T, N, seed)
     dt = T / N
     S = np.zeros(N + 1)
@@ -89,22 +144,55 @@ def generate_mean_reverting(S0, nu, mu, sigma, T=1.0, N=1000, seed=None):
     return t, S
 
 def generate_cir(S0, nu, mu, sigma, T=1.0, N=1000, seed=None):
+    """
+    Generates a Cox-Ingersoll-Ross (CIR) process, which is used in interest rate modeling.
+    
+    The SDE is:
+      dS = (nu - mu*S) dt + sigma * sqrt(S) dW
+    
+    A safeguard is used to ensure non-negativity (since sqrt is only defined for non-negative values).
+    
+    Parameters:
+    - S0: Initial value.
+    - nu: Long-term mean factor.
+    - mu: Speed of reversion.
+    - sigma: Volatility.
+    - T: Time horizon.
+    - N: Number of steps.
+    - seed: Random seed.
+    
+    Returns:
+    - t: Time vector.
+    - S: Sample path (remains non-negative).
+    """
     t, W = generate_brownian_motion(T, N, seed)
     dt = T / N
     S = np.zeros(N + 1)
     S[0] = S0
     for i in range(1, N + 1):
-        # Ensure non-negativity
+        # Enforce non-negativity: if the previous value is negative, reset it to 0.
         if S[i - 1] < 0:
             S[i - 1] = 0
         S[i] = S[i - 1] + (nu - mu * S[i - 1]) * dt + sigma * np.sqrt(max(0, S[i - 1])) * (W[i] - W[i - 1])
     return t, S
 
-# ============================================================================
-# Helper functions for plotting with Matplotlib
-# ============================================================================
+# =============================================================================
+# Helper Functions: Plotting with Matplotlib
+# =============================================================================
 
 def plot_stochastic_process_matplotlib(t, S, title, ylabel):
+    """
+    Creates a line plot of a stochastic process.
+    
+    Parameters:
+    - t: Time vector.
+    - S: Process values.
+    - title: Plot title.
+    - ylabel: Label for the y-axis.
+    
+    Returns:
+    - fig: Matplotlib figure object.
+    """
     fig, ax = plt.subplots(figsize=(10, 5))
     ax.plot(t, S)
     ax.set_title(title)
@@ -114,6 +202,18 @@ def plot_stochastic_process_matplotlib(t, S, title, ylabel):
     return fig
 
 def plot_comparison(t_list, S_list, titles, main_title):
+    """
+    Plots a 2x2 grid to compare four different stochastic processes.
+    
+    Parameters:
+    - t_list: List of time vectors for each process.
+    - S_list: List of process paths.
+    - titles: List of titles for each subplot.
+    - main_title: Overall title for the figure.
+    
+    Returns:
+    - fig: Matplotlib figure object.
+    """
     fig, axes = plt.subplots(2, 2, figsize=(12, 10))
     axes = axes.flatten()
     for i in range(4):
@@ -125,20 +225,22 @@ def plot_comparison(t_list, S_list, titles, main_title):
     fig.tight_layout(rect=[0, 0, 1, 0.95])
     return fig
 
-# ============================================================================
-# Helper for CC BY-NC license image
-# ============================================================================
-
 def get_cc_image():
+    """
+    Generates a placeholder image (as Base64 string) for Creative Commons licensing.
+    
+    Returns:
+    - A data URL string for embedding an image.
+    """
     buffer = BytesIO()
     img = Image.new('RGB', (120, 40), (255, 255, 255))
     img.save(buffer, format='PNG')
     img_str = base64.b64encode(buffer.getvalue()).decode()
     return f'data:image/png;base64,{img_str}'
 
-# ============================================================================
-# App Title and Navigation
-# ============================================================================
+# =============================================================================
+# App Title and Sidebar Navigation Setup
+# =============================================================================
 
 st.title("Elementary Stochastic Calculus Explorer")
 st.sidebar.title("Navigation")
@@ -172,9 +274,9 @@ This work is licensed under a <a rel="license" href="http://creativecommons.org/
 </div>
 """, unsafe_allow_html=True)
 
-# ============================================================================
+# =============================================================================
 # Section: Introduction
-# ============================================================================
+# =============================================================================
 
 if section == "Introduction":
     st.header("Introduction to Stochastic Calculus")
@@ -182,15 +284,12 @@ if section == "Introduction":
 Stochastic calculus is a key mathematical framework for understanding and modeling random processes,
 especially in financial mathematics. It provides the foundation for pricing derivatives, managing risk, 
 and analyzing market dynamics.
-
-At its core, stochastic calculus deals with random quantities and the solution of stochastic differential equations.
-While the mathematics can seem intimidating, this interactive application aims to build intuition and understanding.
-""")
+    """)
     st.markdown("""
 **Why is stochastic calculus important in finance?**  
 Financial markets exhibit randomness that cannot be modeled by deterministic equations. Stochastic calculus 
 provides the tools to model this randomness and its propagation through financial instruments.
-""")
+    """)
     st.header("Randomness in Financial Markets")
     col1, col2 = st.columns(2)
     with col1:
@@ -204,9 +303,9 @@ provides the tools to model this randomness and its propagation through financia
         st.pyplot(fig_gbm)
     st.markdown("The left plot shows pure randomness (Brownian motion) and the right shows a stock price model incorporating growth.")
 
-# ============================================================================
+# =============================================================================
 # Section: Markov & Martingale Properties
-# ============================================================================
+# =============================================================================
 
 elif section == "Markov & Martingale Properties":
     st.header("The Markov Property")
@@ -217,14 +316,14 @@ elif section == "Markov & Martingale Properties":
     st.latex(r"E[S_i \mid S_j,\, j < i] = S_j")
     st.markdown("""
 In finance, a martingale represents a "fair game" where current information cannot predict future gains or losses.
-""")
+    """)
     st.header("Interactive Example: Coin Flipping")
     st.markdown("""
 Consider a coin flipping experiment:
 - Each "Head" gives you \$1  
 - Each "Tail" costs you \$1  
 - The cumulative winnings follow both the Markov and martingale properties.
-""")
+    """)
     num_flips = st.slider("Number of coin flips", 5, 100, 20)
     if st.button("Flip coins"):
         flips = np.random.choice([-1, 1], size=num_flips)
@@ -239,21 +338,21 @@ Consider a coin flipping experiment:
         st.pyplot(fig)
         st.markdown("Observations: The expected winnings remain equal to the current amount, illustrating the martingale property.")
 
-# ============================================================================
+# =============================================================================
 # Section: Brownian Motion
-# ============================================================================
+# =============================================================================
 
 elif section == "Brownian Motion":
     st.header("Brownian Motion")
     st.markdown("""
 Brownian motion (or Wiener process) is a continuous-time process with three key properties:
 1. It starts at zero: 
-""")
+    """)
     st.latex(r"W(0) = 0")
     st.markdown("""
 2. It has independent increments.  
 3. The increments follow a normal distribution with mean 0 and variance equal to the time difference.
-""")
+    """)
     st.markdown("Furthermore, the paths of $W(t)$ are continuous but nowhere differentiable.")
     st.header("Interactive Brownian Motion Simulation")
     col1, col2 = st.columns([1, 3])
@@ -279,9 +378,9 @@ Brownian motion (or Wiener process) is a continuous-time process with three key 
     st.latex(r"\sum_{j=1}^{n} \left(W(t_j) - W(t_{j-1})\right)^2 \to t \quad \text{as } n \to \infty")
     st.markdown("This property is fundamental in stochastic calculus, leading to the rule $dW^2 = dt$.")
 
-# ============================================================================
+# =============================================================================
 # Section: Stochastic Integration
-# ============================================================================
+# =============================================================================
 
 elif section == "Stochastic Integration":
     st.header("Stochastic Integration")
@@ -309,9 +408,9 @@ The stochastic integral $$\int_0^t f(\tau) \, dW(\tau)$$
 can be interpreted as the accumulation of products of function values and Brownian increments.
     """)
 
-# ============================================================================
+# =============================================================================
 # Section: Stochastic Differential Equations
-# ============================================================================
+# =============================================================================
 
 elif section == "Stochastic Differential Equations":
     st.header("Stochastic Differential Equations")
@@ -397,7 +496,6 @@ where:
     st.subheader("Comparing Different Stochastic Processes")
     if st.button("Generate Comparison"):
         seed = 42
-        # Generate four processes with the same seed:
         t_bm, W_bm = generate_brownian_motion(T=1.0, N=1000, seed=seed)
         S_bm = 1.0 + 0.1 * np.linspace(0, 1, 1001) + 0.2 * W_bm
         t_gbm, S_gbm = generate_gbm(S0=1.0, mu=0.1, sigma=0.2, T=1.0, N=1000, seed=seed)
@@ -410,15 +508,15 @@ where:
         st.pyplot(fig_comp)
         st.markdown("Observations: Brownian motion with drift can be negative, GBM remains positive, and while both Vasicek and CIR revert to a long-term mean, only CIR stays non-negative.")
 
-# ============================================================================
+# =============================================================================
 # Section: Common Stochastic Processes
-# ============================================================================
+# =============================================================================
 
 elif section == "Common Stochastic Processes":
     st.header("Common Stochastic Processes in Finance")
     st.markdown("""
-    Financial markets are modeled using various stochastic processes,
-    each with unique properties that suit different assets or market conditions.
+Financial markets are modeled using various stochastic processes,
+each with unique properties that suit different assets or market conditions.
     """)
     process = st.selectbox(
         "Select a stochastic process to explore:",
@@ -457,13 +555,13 @@ elif section == "Common Stochastic Processes":
         ax.set_ylabel("Log Value")
         st.pyplot(fig_log)
         st.markdown(r"""
-        **Key properties:**  
-        - Always positive  
-        - Log-returns are normally distributed  
-        - Closed-form solution: 
-        \[
-        S(t) = S(0)\,\exp\Bigl((\mu - \tfrac{\sigma^2}{2})\,t + \sigma\,W(t)\Bigr)
-        \]
+**Key properties:**  
+- Always positive  
+- Log-returns are normally distributed  
+- Closed-form solution: 
+\[
+S(t) = S(0)\,\exp\Bigl((\mu - \tfrac{\sigma^2}{2})\,t + \sigma\,W(t)\Bigr)
+\]
         """)
     elif process == "Mean-Reverting (Vasicek)":
         st.subheader("Mean-Reverting (Vasicek) Process")
@@ -506,9 +604,9 @@ elif section == "Common Stochastic Processes":
         st.pyplot(fig_comp)
         st.markdown("Observations: GBM remains positive, whereas BM with drift can go negative. Vasicek and CIR revert to a long-term mean, but CIR stays non-negative.")
 
-# ============================================================================
+# =============================================================================
 # Section: Interactive Simulation
-# ============================================================================
+# =============================================================================
 
 elif section == "Interactive Simulation":
     st.header("Interactive Stochastic Process Simulator")
@@ -555,7 +653,7 @@ Adjust parameters to see how the process behavior changes.
             ax.legend()
         st.pyplot(fig)
         
-        # Calculate statistics if more than one path is generated
+        # Calculate and display statistics across multiple paths
         if num_paths > 1:
             all_paths = np.zeros((num_paths, N + 1))
             for i in range(num_paths):
@@ -571,10 +669,10 @@ Adjust parameters to see how the process behavior changes.
             min_path = np.min(all_paths, axis=0)
             max_path = np.max(all_paths, axis=0)
             fig_stats, ax_stats = plt.subplots(figsize=(10, 5))
-            ax_stats.plot(t, mean_path, label="Mean", color="blue", linewidth=2)
-            ax_stats.fill_between(t, mean_path + std_path, mean_path - std_path, color="blue", alpha=0.2, label="Mean ± 1 Std Dev")
-            ax_stats.plot(t, min_path, label="Min", color="red", linestyle="--")
-            ax_stats.plot(t, max_path, label="Max", color="green", linestyle="--")
+            ax_stats.plot(t, mean_path, label="Mean", linewidth=2)
+            ax_stats.fill_between(t, mean_path + std_path, mean_path - std_path, alpha=0.2, label="Mean ± 1 Std Dev")
+            ax_stats.plot(t, min_path, label="Min", linestyle="--")
+            ax_stats.plot(t, max_path, label="Max", linestyle="--")
             ax_stats.set_title("Statistics Across Paths")
             ax_stats.set_xlabel("Time")
             ax_stats.set_ylabel("Value")
@@ -614,9 +712,9 @@ Adjust parameters to see how the process behavior changes.
 - Stress testing models
     """)
 
-# ============================================================================
+# =============================================================================
 # Section: Itô's Lemma
-# ============================================================================
+# =============================================================================
 
 elif section == "Itô's Lemma":
     st.header("Itô's Lemma")
